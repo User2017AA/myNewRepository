@@ -1,6 +1,6 @@
 
 import java.util.ArrayList; 
-
+//code comment to repository
 public class Node{
 
 	private int minne;
