@@ -1,6 +1,7 @@
 
 import java.util.ArrayList; 
 //code comment to repository
+//new branch comment here
 public class Node{
 
 	private int minne;
