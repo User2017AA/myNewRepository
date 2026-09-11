@@ -4,7 +4,7 @@ on:
   # استقبال أمر التشغيل من الخارج عبر التوكن بالكلمة المفتاحية: start
   repository_dispatch:
     types: [start]
-
+  workflow_dispatch: 
 concurrency:
   group: combined-armada-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
